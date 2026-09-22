@@ -12,6 +12,27 @@ services:
       POSTGRES_DB: identityService
     volumes:
       - identityService:/var/lib/postgresql/data
+  assetData-service-db:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: assetDataService
+    volumes:
+      - assetDataService:/var/lib/postgresql/data
+
+  portfolioService-db:
+    image: postgres:17
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: portfolioService
+    volumes:
+      - portfolioService:/var/lib/postgresql/data
 
   kafka:
     image: apache/kafka:4.3.1
@@ -37,7 +58,7 @@ services:
       KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
     volumes:
       - kafka-data:/var/lib/kafka/data
@@ -79,7 +100,19 @@ services:
     command: start-dev
     depends_on:
       - identity-service-db  # Garante que o banco suba primeiro
-
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --requirepass admin --appendonly yes
+    restart: unless-stopped
 volumes:
   identityService:
+  assetDataService:
+  portfolioService:
   kafka-data:
+  redis-data:
+    driver: local
