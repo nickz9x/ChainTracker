@@ -1,0 +1,19 @@
+### IDE ###
+# O .idea do IntelliJ tem configuracao de maquina (caminhos, janelas abertas,
+# conexoes do DB Navigator). Nao deve ser versionado.
+.idea/
+*.iml
+*.iws
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Variaveis de ambiente ###
+# Credenciais do docker-compose. Versionar so o .env.example.
+.env
+.env.local
+
+### Sistema operacional ###
+.DS_Store
+Thumbs.db
