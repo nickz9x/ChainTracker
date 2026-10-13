@@ -33,6 +33,16 @@ services:
       POSTGRES_DB: portfolioService
     volumes:
       - portfolioService:/var/lib/postgresql/data
+  notificationService-db:
+    image: postgres:17
+    ports:
+      - 5435:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notificationService
+    volumes:
+      - notificationService:/var/lib/postgresql/data
 
   kafka:
     image: apache/kafka:4.3.1
@@ -115,6 +125,7 @@ volumes:
   identityService:
   assetDataService:
   portfolioService:
+  notificationService:
   kafka-data:
   redis-data:
     driver: local
