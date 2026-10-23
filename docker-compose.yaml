@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   identity-service:
-    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\identity-service
+    build: ./identity-service
     ports:
       - "3002:3002"
     environment:
@@ -11,7 +11,7 @@ services:
       - chaintracker-network
 
   notification-service:
-    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\notificationService
+    build: ./notificationService1
     ports:
       - "3005:3005"
     environment:
@@ -23,14 +23,14 @@ services:
       - chaintracker-network
 
   portfolio-service:
-    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\portfolioService
+    build: ./portfolioService
     ports:
       - "3004:3004"
     networks:
       - chaintracker-network
 
   assetmarketdata-service:
-    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\assetMarketDataService
+    build: ./assetMarketDataService
     ports:
       - "3003:3003"
     environment:
@@ -41,7 +41,7 @@ services:
       - chaintracker-network
 
   gateway:
-    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\gatewayService
+    build: ./gatewayService
     container_name: chaintracker-gateway
     ports:
       - "3006:3006"
@@ -76,7 +76,7 @@ services:
     networks:
       - chaintracker-network
 
-  portfolioService-db:
+  portfolio-service-db:
     image: postgres:17
     ports:
       - 5434:5432
@@ -89,7 +89,7 @@ services:
     networks:
       - chaintracker-network
 
-  notificationService-db:
+  notification-service-db:
     image: postgres:17
     ports:
       - 5435:5432
@@ -114,7 +114,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -132,14 +132,6 @@ services:
       - kafka-data:/var/lib/kafka/data
     networks:
       - chaintracker-network
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list > /dev/null 2>&1
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
 
   kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:v1.5.0
@@ -149,11 +141,10 @@ services:
       - "8083:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: chaintracker-local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: "false"
     depends_on:
-      kafka:
-        condition: service_healthy
+      - kafka
     networks:
       - chaintracker-network
 
