@@ -1,6 +1,54 @@
 version: '3.8'
 
 services:
+  identity-service:
+    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\identity-service
+    ports:
+      - "3002:3002"
+    environment:
+      KEYCLOAK_SECRET: gfRTzEHqLtpke6zZPZKWfdji6WMmJtJS99zxt0NJ8Cl5HRBjDui1ElOUkGtQGjkHf9k2Ir9nsYzYqiDlHo57tp
+    networks:
+      - chaintracker-network
+
+  notification-service:
+    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\notificationService
+    ports:
+      - "3005:3005"
+    environment:
+      NOTIFICATION_CLIENT_SECRET: ZtLcll0k4OS1Ff0yK9uMLU2U0XvVgw7Yg8OCBfmozgElmrqRNMBjZPWZVmuootmEq2dPj4n7KMa3Yx2409X8KF
+      TELEGRAM_KEY: 8840059951:AAHgx7NKR-gKOfNKuQZ4hM93wZZy945ikGc
+      DISCORD_TOKEN: MTU1OTM1ODU5NjMyNjYyMTI1NA.GbP6Zg.2GNHBCishZDjh66G4CYthrShIjDoryux74TYKk
+      DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/1559358783208038461/la3NZXhmK0zYa-VGRO4qqZz-aALZ5xQJj28TICL26gqhl3j_1DCKYmGlC8l1G1ZuR0Jn
+    networks:
+      - chaintracker-network
+
+  portfolio-service:
+    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\portfolioService
+    ports:
+      - "3004:3004"
+    networks:
+      - chaintracker-network
+
+  assetmarketdata-service:
+    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\assetMarketDataService
+    ports:
+      - "3003:3003"
+    environment:
+      COINGECKO_KEY: CG-qjxKu4aBr8hkDD1DVWRgg8wG
+      ALPACA_KEY: PK25OOHQUWHCUHF6YLFJUO7P2Q
+      ALPACA_SECRET: DSHSTNNV5nT6MTQR6XqKDzmTDXL6kq6s7qdMgRRcWNny
+    networks:
+      - chaintracker-network
+
+  gateway:
+    build: C:\Users\nicho\OneDrive\Documentos\ChatGPT\gatewayService
+    container_name: chaintracker-gateway
+    ports:
+      - "3006:3006"
+    environment:
+      SERVER_PORT: 3006
+    networks:
+      - chaintracker-network
 
   identity-service-db:
     image: postgres:17
@@ -12,6 +60,9 @@ services:
       POSTGRES_DB: identityService
     volumes:
       - identityService:/var/lib/postgresql/data
+    networks:
+      - chaintracker-network
+
   assetData-service-db:
     image: postgres:17
     ports:
@@ -22,6 +73,8 @@ services:
       POSTGRES_DB: assetDataService
     volumes:
       - assetDataService:/var/lib/postgresql/data
+    networks:
+      - chaintracker-network
 
   portfolioService-db:
     image: postgres:17
@@ -33,6 +86,9 @@ services:
       POSTGRES_DB: portfolioService
     volumes:
       - portfolioService:/var/lib/postgresql/data
+    networks:
+      - chaintracker-network
+
   notificationService-db:
     image: postgres:17
     ports:
@@ -43,6 +99,8 @@ services:
       POSTGRES_DB: notificationService
     volumes:
       - notificationService:/var/lib/postgresql/data
+    networks:
+      - chaintracker-network
 
   kafka:
     image: apache/kafka:4.3.1
@@ -72,6 +130,8 @@ services:
       KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
     volumes:
       - kafka-data:/var/lib/kafka/data
+    networks:
+      - chaintracker-network
     healthcheck:
       test:
         - CMD-SHELL
@@ -94,6 +154,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - chaintracker-network
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest  # Corrigido para a imagem oficial atual
@@ -109,9 +171,12 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     command: start-dev --import-realm
     volumes:
-      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
+      - ./realm-export.json:/opt/keycloak/data/import/ChainTracker-realm.json
     depends_on:
       - identity-service-db  # Garante que o banco suba primeiro
+    networks:
+      - chaintracker-network
+
   redis:
     image: redis:latest
     container_name: my-redis
@@ -120,6 +185,8 @@ services:
     volumes:
       - redis-data:/data
     command: redis-server --requirepass admin --appendonly yes
+    networks:
+      - chaintracker-network
     restart: unless-stopped
 volumes:
   identityService:
@@ -129,3 +196,6 @@ volumes:
   kafka-data:
   redis-data:
     driver: local
+
+networks:
+  chaintracker-network:
