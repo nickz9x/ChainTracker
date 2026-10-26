@@ -1,0 +1,20 @@
+[submodule "assetMarketDataService"]
+	path = assetMarketDataService
+	url = https://github.com/nickz9x/assetMarketDataService.git
+	branch = main
+[submodule "gatewayService"]
+	path = gatewayService
+	url = https://github.com/nickz9x/gatewayService.git
+	branch = master
+[submodule "identity-service"]
+	path = identity-service
+	url = https://github.com/nickz9x/identity-service.git
+	branch = master
+[submodule "notificationService"]
+	path = notificationService
+	url = https://github.com/nickz9x/notificationService.git
+	branch = master
+[submodule "portfolioService"]
+	path = portfolioService
+	url = https://github.com/nickz9x/portfolioService.git
+	branch = main

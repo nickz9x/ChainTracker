@@ -1,6 +1,6 @@
 # ChainTracker
 
-Repositório de **orquestração local** do ecossistema ChainTracker. Ele reúne o `docker-compose.yaml`, as exportações do realm do Keycloak, o exemplo de variáveis de ambiente e a licença do projeto. Não há código de aplicação aqui: cada microsserviço vive em seu próprio repositório e é construído a partir do diretório indicado no compose.
+Repositório de **orquestração local** do ecossistema ChainTracker. Ele reúne o `docker-compose.yaml`, as exportações do realm do Keycloak, o exemplo de variáveis de ambiente e a licença do projeto. O código de cada microsserviço permanece em seu próprio repositório, incluído aqui como **submódulo Git** nos caminhos usados pelo compose.
 
 ---
 
@@ -8,7 +8,8 @@ Repositório de **orquestração local** do ecossistema ChainTracker. Ele reúne
 
 O ChainTracker é uma plataforma de acompanhamento de portfólios de criptomoedas e ações. O ambiente local sobe, em uma única rede Docker:
 
-- cinco aplicações Spring Boot;
+- os cinco repositórios de serviço como submódulos Git;
+- as cinco aplicações Spring Boot;
 - quatro bancos PostgreSQL independentes;
 - um broker Kafka em modo KRaft;
 - um Kafka UI;
@@ -16,6 +17,49 @@ O ChainTracker é uma plataforma de acompanhamento de portfólios de criptomoeda
 - um Redis compartilhado.
 
 O objetivo do repositório é permitir que todo o ecossistema seja executado com um único `docker compose up`.
+
+---
+
+## Submódulos
+
+Os cinco repositórios de serviço são submódulos Git deste repositório. Eles ficam exatamente nos caminhos usados como contexto de build pelo `docker-compose.yaml`, e cada um continua versionado de forma independente.
+
+| Submódulo | Repositório | Branch acompanhada |
+|---|---|---|
+| `assetMarketDataService` | `nickz9x/assetMarketDataService` | `main` |
+| `gatewayService` | `nickz9x/gatewayService` | `master` |
+| `identity-service` | `nickz9x/identity-service` | `master` |
+| `notificationService` | `nickz9x/notificationService` | `master` |
+| `portfolioService` | `nickz9x/portfolioService` | `main` |
+
+### Clonar com os submódulos
+
+```bash
+git clone --recurse-submodules https://github.com/nickz9x/ChainTracker.git
+cd ChainTracker
+```
+
+Em um clone que já existe, baixe os submódulos com:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Atualizar os submódulos
+
+```bash
+git submodule update --remote --merge
+```
+
+Esse comando atualiza cada submódulo para o último commit da branch registrada em `.gitmodules`. Depois, o `ChainTracker` precisa registrar os novos commits:
+
+```bash
+git add .gitmodules assetMarketDataService gatewayService identity-service notificationService portfolioService
+git commit -m "chore: atualiza submódulos"
+git push
+```
+
+Alterações em um serviço devem ser commitadas e enviadas dentro do repositório do próprio serviço. O `ChainTracker` apenas guarda o commit apontado por cada submódulo.
 
 ---
 
@@ -72,7 +116,7 @@ Todos os containers conversam pela rede `chaintracker-network`, usando o **nome 
 | `keycloak` | `quay.io/keycloak/keycloak:latest` | `8081:8080` | `identity-service-db` | `KC_*`, `POSTGRES_*` |
 | `redis` | `redis:latest` | `6379:6379` | — | `REDIS_PASSWORD` |
 
-> Os caminhos de build são relativos ao arquivo `docker-compose.yaml` e usam os nomes `identity-service`, `notificationService`, `portfolioService`, `assetMarketDataService` e `gatewayService`. Mantenha os repositórios nesses caminhos ao subir o stack ou ajuste os `build` no compose.
+> Os caminhos de build são relativos ao arquivo `docker-compose.yaml` e coincidem com os caminhos dos submódulos. Um clone com `--recurse-submodules` já deixa o stack pronto para o `docker compose up --build`.
 
 ### Bancos de dados
 
@@ -196,25 +240,29 @@ O compose usa a sintaxe `${VARIAVEL:?defina VARIAVEL no .env}` para as variávei
 ### Pré-requisitos
 
 - Docker Engine ou Docker Desktop com Compose v2;
-- os repositórios dos cinco serviços disponíveis nos caminhos de build usados pelo compose;
+- os submódulos dos cinco serviços inicializados;
 - acesso às APIs externas da CoinGecko e da Alpaca;
 - token de um bot do Telegram e token/webhook de um bot do Discord.
 
 ### Passo a passo
 
 ```bash
-# 1. entre no repositório de orquestração
+# 1. clone o repositório com os submódulos
+git clone --recurse-submodules https://github.com/nickz9x/ChainTracker.git
 cd ChainTracker
 
-# 2. crie o arquivo de ambiente
+# 2. em um clone já existente, inicialize os submódulos
+git submodule update --init --recursive
+
+# 3. crie o arquivo de ambiente
 cp .env.example .env
 
-# 3. preencha os valores reais no .env
+# 4. preencha os valores reais no .env
 
-# 4. suba todo o stack
+# 5. suba todo o stack
 docker compose up --build -d
 
-# 5. acompanhe a inicialização
+# 6. acompanhe a inicialização
 docker compose ps
 docker compose logs -f gateway
 ```
@@ -292,12 +340,18 @@ docker compose down -v
 
 ```text
 ChainTracker/
-├── .env.example            # modelo das variáveis de ambiente
-├── ChainTracker-realm.json # exportação complementar do realm
-├── LICENSE                 # licença MIT
+├── .env.example                 # modelo das variáveis de ambiente
+├── .gitmodules                  # URLs e branches dos submódulos
+├── ChainTracker-realm.json      # exportação complementar do realm
+├── LICENSE                      # licença MIT
 ├── README.md
-├── docker-compose.yaml     # orquestração de todos os serviços
-└── realm-export.json       # realm importado pelo Keycloak no compose
+├── assetMarketDataService/      # submódulo
+├── docker-compose.yaml          # orquestração de todos os serviços
+├── gatewayService/              # submódulo
+├── identity-service/            # submódulo
+├── notificationService/         # submódulo
+├── portfolioService/            # submódulo
+└── realm-export.json            # realm importado pelo Keycloak no compose
 ```
 
 ---
